@@ -1,0 +1,60 @@
+import numpy as np
+import pandas as pd
+import pickle
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+# Load datasets
+train = pd.read_csv(r"C:\Users\keert\Desktop\miniprojectexe\miniproject\training_set_label.csv")
+test = pd.read_csv(r"C:\Users\keert\Desktop\miniprojectexe\miniproject\testing_set_label.csv")
+
+# Prepare the data
+X = train.drop('status', axis=1)
+y = train['status']
+
+# Drop unnecessary columns
+columns_to_drop = ['state_code', 'id', 'Unnamed: 6', 'state_code.1', 'category_code',
+                   'object_id', 'zip_code', 'founded_at', 'closed_at', 'first_funding_at',
+                   'last_funding_at', 'city', 'name', 'Unnamed: 0', 'latitude', 'longitude',
+                   'has_roundA', 'has_roundB', 'has_roundC', 'has_roundD', 'is_top500',
+                   'is_TX', 'is_MA', 'is_CA', 'is_NY', 'is_otherstate',
+                   'age_first_funding_year', 'has_VC', 'has_angel',
+                   'age_last_funding_year', 'age_first_milestone_year',
+                   'age_last_milestone_year', 'is_software', 'is_web',
+                   'is_mobile', 'is_enterprise', 'is_advertising',
+                   'is_gamesvideo', 'is_ecommerce', 'is_biotech',
+                   'is_consulting', 'is_othercategory']
+
+X = X.drop(columns=columns_to_drop, axis=1)
+test = test.drop(columns=columns_to_drop, axis=1)
+
+# Split the training set
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=20)
+
+# Standardize the features
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+
+# Train the RandomForest model
+rf = RandomForestClassifier(bootstrap=False, max_depth=12, min_samples_leaf=100,
+                            min_samples_split=20, n_estimators=100)
+rf.fit(X_train, y_train)
+
+# Save the model to a new pickle file
+pickle_file_path = r"C:\Users\keert\Desktop\miniprojectexe\miniproject\prediction.pkl"
+with open(pickle_file_path, 'wb') as f:
+    pickle.dump(rf, f)
+
+# Load the model from the new pickle file
+try:
+    with open(pickle_file_path, 'rb') as f:
+        rf_model = pickle.load(f)
+    print("Model loaded successfully!")
+except pickle.UnpicklingError as e:
+    print("Error loading the model:", e)
+except FileNotFoundError as e:
+    print("Pickle file not found:", e)
+except Exception as e:
+    print("An unexpected error occurred:", e)
